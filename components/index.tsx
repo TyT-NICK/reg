@@ -56,7 +56,7 @@ export const AlreadyRegisteredScreen: React.FC<{ regTime: string; onOk: () => vo
 
   return (
     <div className={styles.centered}>
-      <p>Вы уже записаны на</p>
+      <h1 className={styles.title}>Вы уже записаны на</h1>
 
       <p className={styles.time}>{datetime.format('DD MMMM')}</p>
       <p className={styles.time}>{datetime.format('HH:mm')}</p>
@@ -83,6 +83,7 @@ export const SlotSuggestionScreen: React.FC<{ nextTime: string; onConfirm: () =>
 
   return (
     <div className={styles.centered}>
+      <h1 className={styles.title}>Заезд строго по времени!</h1>
       <p>Доступное время:</p>
       <p className={styles.time}>{datetime.format('DD MMMM')}</p>
       <p className={styles.time}>{datetime.format('HH:mm')}</p>
@@ -108,15 +109,46 @@ export const NoSlotsScreen: React.FC<{ onBack: () => void }> = ({ onBack }) => (
   </div>
 );
 
-// 5. Экран успешной записи
+// 6. Экран информации о записи
+export const RegisteredInfoScreen: React.FC<{
+  regTime: string;
+  FIO: string;
+  GosNomer: string;
+  onOk: VoidFunction;
+  onCancel: VoidFunction;
+}> = ({ regTime, FIO, GosNomer, onCancel, onOk }) => {
+  const datetime = dayjs(regTime);
+
+  return (
+    <div className={styles.centered}>
+      <h1 className={styles.title}>Вы записаны</h1>
+
+      <p className={styles.time}>Дата: {datetime.format('DD MMMM')}</p>
+      <p className={styles.time}>Время: {datetime.format('HH:mm')}</p>
+      <p className={styles.time}>ГосНомер: {GosNomer}</p>
+      <p className={styles.time}>Водитель: {FIO}</p>
+
+      <div className={styles.actions}>
+        <button className={styles.button} onClick={onOk}>
+          OK
+        </button>
+        <button className={styles.buttonSecondary} onClick={onCancel}>
+          Отменить запись
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// 6. Экран успешной записи
 export const RegisteredSuccessScreen: React.FC<{ regTime: string }> = ({ regTime }) => {
   const datetime = dayjs(regTime);
 
   return (
     <div className={styles.centered}>
-      <p className={styles.success}>
-        Готово! Ждём вас {datetime.format('DD MMMM')} в {datetime.format('HH:mm')}
-      </p>
+      <h1 className={styles.title}>
+        Ждём вас {datetime.format('DD MMMM')} в {datetime.format('HH:mm')}
+      </h1>
       <p className={styles.subtitle}>Адрес: Иркутск, Покрышкина, 74</p>
     </div>
   );

@@ -5,7 +5,7 @@
 }
 
 .title {
-  font-size: 24px;
+  font-size: 32px;
   margin-bottom: 8px;
 }
 
@@ -16,7 +16,8 @@
 }
 
 .label {
-  display: block;
+  display: flex;
+  flex-direction: column;
   margin-bottom: 12px;
   font-weight: 500;
 }
@@ -60,7 +61,7 @@
 
 .time {
   font-size: 20px;
-  font-weight: bold;
+  font-weight: regular;
   margin: 12px 0;
 }
 

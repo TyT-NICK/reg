@@ -11,6 +11,7 @@ import {
   SlotSuggestionScreen,
   NoSlotsScreen,
   RegisteredSuccessScreen,
+  RegisteredInfoScreen,
 } from '@/components';
 import { useLocalStorageValue } from '@react-hookz/web';
 import { LOCAL_GN_PH_STORAGE, LocalGnPhStorage } from '@/constants';
@@ -20,6 +21,7 @@ enum Screen {
   AlreadyRegistered,
   SuggestSlot,
   NoSlots,
+  RegistryInfo,
   Success,
 }
 
@@ -46,6 +48,8 @@ const MainComponent: React.FC = () => {
   const [garNum, setGarNum] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [regTime, setRegTime] = useState<string>('');
+  const [FIO, setFIO] = useState<string>('');
+  const [GosNomer, setGosNomer] = useState<string>('');
 
   const nextSlotQuery = useQuery<NextSlotResponse>({
     queryKey: ['nextSlot'],
@@ -61,6 +65,9 @@ const MainComponent: React.FC = () => {
     onSuccess: async ({ data }, { gn, ph }) => {
       setGarNum(gn);
       setPhone(ph);
+
+      setFIO(data.FIO);
+      setGosNomer(data.GosNomer);
 
       set({ gn, ph });
 
@@ -86,7 +93,7 @@ const MainComponent: React.FC = () => {
     mutationFn: () => axios.post<QueueResponse>('/api/queue', { garNum, phone, regTime }),
     onSuccess: ({ data }) => {
       if (data.RegTime) {
-        setScreen(Screen.Success);
+        setScreen(Screen.RegistryInfo);
       }
     },
     onError: () => {
@@ -108,26 +115,33 @@ const MainComponent: React.FC = () => {
     authMutation.mutate({ gn, ph });
   };
 
-  const handleOk = () => toast.info('Ждём вас!');
-
   const handleCancel = () => {
     cancelMutation.mutate();
   };
 
   const handleConfirmSlot = () => queueMutation.mutate();
-  const handleRejectSlot = () => setScreen(Screen.NoSlots);
-  const handleBack = () => setScreen(Screen.SuggestSlot);
+  const handleRejectSlot = () => setScreen(Screen.Entry);
+  const handleConfirmRegistry = () => setScreen(Screen.Success);
 
   return (
     <>
       {screen === Screen.Entry && <EntryFormScreen onSubmit={handleSubmit} />}
       {screen === Screen.AlreadyRegistered && (
-        <AlreadyRegisteredScreen regTime={regTime} onOk={handleOk} onCancel={handleCancel} />
+        <AlreadyRegisteredScreen regTime={regTime} onOk={handleConfirmRegistry} onCancel={handleCancel} />
       )}
       {screen === Screen.SuggestSlot && (
         <SlotSuggestionScreen nextTime={regTime} onConfirm={handleConfirmSlot} onReject={handleRejectSlot} />
       )}
-      {screen === Screen.NoSlots && <NoSlotsScreen onBack={handleBack} />}
+      {screen === Screen.NoSlots && <NoSlotsScreen onBack={handleRejectSlot} />}
+      {screen === Screen.RegistryInfo && (
+        <RegisteredInfoScreen
+          FIO={FIO}
+          regTime={regTime}
+          GosNomer={GosNomer}
+          onOk={handleConfirmRegistry}
+          onCancel={handleCancel}
+        />
+      )}
       {screen === Screen.Success && <RegisteredSuccessScreen regTime={regTime} />}
       <ToastContainer position="bottom-center" />
     </>
