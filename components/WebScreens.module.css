@@ -41,6 +41,36 @@
   color: white;
 }
 
+.buttonWithSpinner {
+  position: relative;
+}
+
+.buttonWithSpinner:disabled {
+  cursor: not-allowed;
+  color: transparent;
+}
+
+.buttonWithSpinner:disabled::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: button-spin 0.6s linear infinite;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+}
+
+@keyframes button-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
 .buttonSecondary {
   padding: 12px 24px;
   border: none;

@@ -10,8 +10,9 @@ dayjs.locale('ru');
 
 // 1. Экран входа
 export const EntryFormScreen: React.FC<{
+  pending: boolean;
   onSubmit: (garNum: string, phone: string) => void;
-}> = ({ onSubmit }) => {
+}> = ({ onSubmit, pending }) => {
   const [garNum, setGarNum] = useState('');
   const [phone, setPhone] = useState('');
 
@@ -53,7 +54,11 @@ export const EntryFormScreen: React.FC<{
         />
       </label>
 
-      <button className={styles.button} onClick={() => onSubmit(garNum, phone)}>
+      <button
+        className={`${styles.button} ${styles.buttonWithSpinner}`}
+        disabled={pending}
+        onClick={() => onSubmit(garNum, phone)}
+      >
         Подтвердить
       </button>
     </div>
@@ -64,9 +69,10 @@ export const EntryFormScreen: React.FC<{
 export const AlreadyRegisteredScreen: React.FC<{
   regTime: string;
   address: string;
+  pending: boolean;
   onOk: () => void;
   onCancel: () => void;
-}> = ({ regTime, address, onOk, onCancel }) => {
+}> = ({ regTime, address, pending, onOk, onCancel }) => {
   const datetime = dayjs(regTime);
 
   return (
@@ -82,7 +88,11 @@ export const AlreadyRegisteredScreen: React.FC<{
         <button className={styles.button} onClick={onOk}>
           OK
         </button>
-        <button className={styles.buttonSecondary} onClick={onCancel}>
+        <button
+          disabled={pending}
+          className={`${styles.buttonSecondary} ${styles.buttonWithSpinner}`}
+          onClick={onCancel}
+        >
           Отменить запись
         </button>
       </div>
@@ -94,9 +104,10 @@ export const AlreadyRegisteredScreen: React.FC<{
 export const SlotSuggestionScreen: React.FC<{
   nextTime: string;
   address: string;
+  pending: boolean;
   onConfirm: () => void;
   onReject: () => void;
-}> = ({ nextTime, address, onConfirm, onReject }) => {
+}> = ({ nextTime, address, pending, onConfirm, onReject }) => {
   const datetime = dayjs(nextTime);
 
   return (
@@ -107,7 +118,11 @@ export const SlotSuggestionScreen: React.FC<{
       <p className={styles.time}>{datetime.format('HH:mm')}</p>
       <p className={styles.time}>{address}</p>
       <div className={styles.actions}>
-        <button className={styles.button} onClick={onConfirm}>
+        <button
+          disabled={pending}
+          className={`${styles.button} ${styles.buttonWithSpinner}`}
+          onClick={onConfirm}
+        >
           Записаться
         </button>
         <button className={styles.buttonSecondary} onClick={onReject}>
@@ -134,9 +149,10 @@ export const RegisteredInfoScreen: React.FC<{
   FIO: string;
   GosNomer: string;
   address: string;
+  pending: boolean;
   onOk: VoidFunction;
   onCancel: VoidFunction;
-}> = ({ regTime, FIO, GosNomer, onCancel, onOk, address }) => {
+}> = ({ regTime, FIO, GosNomer, pending, onCancel, onOk, address }) => {
   const datetime = dayjs(regTime);
 
   return (
@@ -154,7 +170,11 @@ export const RegisteredInfoScreen: React.FC<{
         <button className={styles.button} onClick={onOk}>
           OK
         </button>
-        <button className={styles.buttonSecondary} onClick={onCancel}>
+        <button
+          disabled={pending}
+          className={`${styles.buttonSecondary} ${styles.buttonWithSpinner}`}
+          onClick={onCancel}
+        >
           Отменить запись
         </button>
       </div>

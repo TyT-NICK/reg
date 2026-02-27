@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getSoapClient } from '@/lib/soap-client';
 
 // Interfaces for request and SOAP response
-interface AuthRequestBody {
+export interface AuthRequestBody {
   garageNumber: string;
   phone: string;
 }
@@ -38,36 +38,45 @@ export async function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
-  let body: AuthRequestBody;
-
-  try {
-    body = (await request.json()) as AuthRequestBody;
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400, headers: corsHeaders });
-  }
+  const body = (await request.json()) as AuthRequestBody;
+  console.log('🚀 ~ POST ~ body:', body);
 
   const { garageNumber, phone } = body;
   if (!garageNumber || !phone) {
-    return NextResponse.json({ error: 'Missing garageNumber or phone' }, { status: 400, headers: corsHeaders });
+    return NextResponse.json(
+      { error: 'Missing garageNumber or phone' },
+      { status: 400, headers: corsHeaders },
+    );
   }
 
   // Call SOAP Authorization
   let soapResponse: SoapAuthorizationResponse;
   try {
     const client = await getSoapClient();
-    const rawPayload = JSON.stringify({ GarNomer: garageNumber, Telephone: phone });
-
-    soapResponse = await new Promise<SoapAuthorizationResponse>((resolve, reject) => {
-      client.Authorization({ СтрокаJSON: rawPayload }, (err: unknown, result: unknown) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(result as SoapAuthorizationResponse);
-      });
+    const rawPayload = JSON.stringify({
+      GarNomer: garageNumber,
+      Telephone: phone,
     });
+
+    soapResponse = await new Promise<SoapAuthorizationResponse>(
+      (resolve, reject) => {
+        client.Authorization(
+          { СтрокаJSON: rawPayload },
+          (err: unknown, result: unknown) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(result as SoapAuthorizationResponse);
+          },
+        );
+      },
+    );
   } catch (error) {
     console.error('SOAP Authorization error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: corsHeaders },
+    );
   }
 
   // Extract and parse result
@@ -77,15 +86,23 @@ export async function POST(request: NextRequest) {
 
   let parsed: ParsedAuthResult;
   try {
-    parsed = resultField.return ? JSON.parse(resultField.return) : (resultField as ParsedAuthResult);
+    parsed = resultField.return
+      ? JSON.parse(resultField.return)
+      : (resultField as ParsedAuthResult);
   } catch (error) {
     console.error('Error parsing SOAP result:', error);
-    return NextResponse.json({ error: 'Invalid SOAP response format' }, { status: 500, headers: corsHeaders });
+    return NextResponse.json(
+      { error: 'Invalid SOAP response format' },
+      { status: 500, headers: corsHeaders },
+    );
   }
 
   // Handle errors from the service
   if (parsed.error) {
-    return NextResponse.json({ error: parsed.error }, { status: 400, headers: corsHeaders });
+    return NextResponse.json(
+      { error: parsed.error },
+      { status: 400, headers: corsHeaders },
+    );
   }
 
   console.log('Auth successful:', parsed.data);

@@ -6,7 +6,6 @@ import {
   QueryClient,
   QueryClientProvider,
   useMutation,
-  useQuery,
 } from '@tanstack/react-query';
 import { toast, ToastContainer } from 'react-toastify';
 import {
@@ -58,45 +57,22 @@ const MainComponent: React.FC = () => {
 
   const [address, setAddress] = useState<string>('');
 
-  const nextSlotQuery = useQuery<NextSlotResponse>({
-    queryKey: ['nextSlot'],
-    queryFn: () =>
-      axios.get<NextSlotResponse>('/api/next-slot').then((r) => r.data),
-    enabled: false,
-  });
-
   const { set } = useLocalStorageValue<LocalGnPhStorage>(LOCAL_GN_PH_STORAGE, {
     initializeWithValue: true,
+  });
+
+  const nextSlotQuery = useMutation({
+    mutationKey: ['nextSlot'],
+    mutationFn: ({ gn, ph }: { gn: string; ph: string }) =>
+      axios.post<NextSlotResponse>('/api/next-slot', {
+        garageNumber: gn,
+        phone: ph,
+      }),
   });
 
   const authMutation = useMutation({
     mutationFn: ({ gn, ph }: { gn: string; ph: string }) =>
       axios.post<AuthResponse>('/api/auth', { garageNumber: gn, phone: ph }),
-    onSuccess: async ({ data }, { gn, ph }) => {
-      setGarNum(gn);
-      setPhone(ph);
-
-      setFIO(data.FIO);
-      setGosNomer(data.GosNomer);
-      setAddress(data.Adress);
-      set({ gn, ph });
-
-      if (data.isReg) {
-        setRegTime(data.RegTime);
-        setScreen(Screen.AlreadyRegistered);
-        return;
-      }
-
-      const nextAvailableSlot = await nextSlotQuery.refetch();
-
-      if (nextAvailableSlot.data?.RegTime) {
-        setRegTime(nextAvailableSlot.data.RegTime);
-        setScreen(Screen.SuggestSlot);
-      } else {
-        toast.error('Нет доступного времени для записи.');
-      }
-    },
-    onError: () => toast.error('Неверный гаражный номер или телефон'),
   });
 
   const queueMutation = useMutation({
@@ -122,8 +98,39 @@ const MainComponent: React.FC = () => {
     onError: () => toast.error('Ошибка отмены записи.'),
   });
 
-  const handleSubmit = (gn: string, ph: string) => {
-    authMutation.mutate({ gn, ph });
+  const handleSubmit = async (gn: string, ph: string) => {
+    try {
+      const authResponse = await authMutation.mutateAsync({ gn, ph });
+
+      setGarNum(gn);
+      setPhone(ph);
+
+      setFIO(authResponse.data.FIO);
+      setGosNomer(authResponse.data.GosNomer);
+      setAddress(authResponse.data.Adress);
+      set({ gn, ph });
+
+      if (authResponse.data.isReg) {
+        setRegTime(authResponse.data.RegTime);
+        setScreen(Screen.AlreadyRegistered);
+        return;
+      }
+
+      try {
+        const slotResponse = await nextSlotQuery.mutateAsync({ gn, ph });
+
+        if (slotResponse.data?.RegTime) {
+          setRegTime(slotResponse.data.RegTime);
+          setScreen(Screen.SuggestSlot);
+        } else {
+          toast.error('Нет доступного времени для записи.');
+        }
+      } catch {
+        toast.error('Нет доступного времени для записи.');
+      }
+    } catch {
+      toast.error('Неверный гаражный номер или телефон');
+    }
   };
 
   const handleCancel = () => {
@@ -136,13 +143,19 @@ const MainComponent: React.FC = () => {
 
   return (
     <>
-      {screen === Screen.Entry && <EntryFormScreen onSubmit={handleSubmit} />}
+      {screen === Screen.Entry && (
+        <EntryFormScreen
+          onSubmit={handleSubmit}
+          pending={authMutation.isPending || nextSlotQuery.isPending}
+        />
+      )}
       {screen === Screen.AlreadyRegistered && (
         <AlreadyRegisteredScreen
           regTime={regTime}
           onOk={handleConfirmRegistry}
           onCancel={handleCancel}
           address={address}
+          pending={cancelMutation.isPending}
         />
       )}
       {screen === Screen.SuggestSlot && (
@@ -151,6 +164,7 @@ const MainComponent: React.FC = () => {
           onConfirm={handleConfirmSlot}
           onReject={handleRejectSlot}
           address={address}
+          pending={queueMutation.isPending}
         />
       )}
       {screen === Screen.NoSlots && <NoSlotsScreen onBack={handleRejectSlot} />}
@@ -162,11 +176,13 @@ const MainComponent: React.FC = () => {
           onOk={handleConfirmRegistry}
           onCancel={handleCancel}
           address={address}
+          pending={cancelMutation.isPending}
         />
       )}
       {screen === Screen.Success && (
         <RegisteredSuccessScreen regTime={regTime} address={address} />
       )}
+
       <ToastContainer position="bottom-center" />
     </>
   );
