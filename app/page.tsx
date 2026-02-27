@@ -56,7 +56,7 @@ const MainComponent: React.FC = () => {
   const [FIO, setFIO] = useState<string>('');
   const [GosNomer, setGosNomer] = useState<string>('');
 
-  const [address, setAddress] = useState<string>('qwesasd');
+  const [address, setAddress] = useState<string>('');
 
   const nextSlotQuery = useQuery<NextSlotResponse>({
     queryKey: ['nextSlot'],
