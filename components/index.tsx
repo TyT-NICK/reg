@@ -9,13 +9,18 @@ import 'dayjs/locale/ru';
 dayjs.locale('ru');
 
 // 1. Экран входа
-export const EntryFormScreen: React.FC<{ onSubmit: (garNum: string, phone: string) => void }> = ({ onSubmit }) => {
+export const EntryFormScreen: React.FC<{
+  onSubmit: (garNum: string, phone: string) => void;
+}> = ({ onSubmit }) => {
   const [garNum, setGarNum] = useState('');
   const [phone, setPhone] = useState('');
 
-  const { value: initialValues } = useLocalStorageValue<LocalGnPhStorage>(LOCAL_GN_PH_STORAGE, {
-    initializeWithValue: true,
-  });
+  const { value: initialValues } = useLocalStorageValue<LocalGnPhStorage>(
+    LOCAL_GN_PH_STORAGE,
+    {
+      initializeWithValue: true,
+    },
+  );
 
   useEffect(() => {
     if (!initialValues) return;
@@ -27,16 +32,25 @@ export const EntryFormScreen: React.FC<{ onSubmit: (garNum: string, phone: strin
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Запись на заправку</h1>
-      <p className={styles.subtitle}>Адрес: Иркутск, Покрышкина, 74</p>
 
       <label className={styles.label}>
         Гаражный номер
-        <input type="text" value={garNum} onChange={(e) => setGarNum(e.target.value)} className={styles.input} />
+        <input
+          type="text"
+          value={garNum}
+          onChange={(e) => setGarNum(e.target.value)}
+          className={styles.input}
+        />
       </label>
 
       <label className={styles.label}>
         Ваш телефон
-        <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className={styles.input} />
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className={styles.input}
+        />
       </label>
 
       <button className={styles.button} onClick={() => onSubmit(garNum, phone)}>
@@ -47,11 +61,12 @@ export const EntryFormScreen: React.FC<{ onSubmit: (garNum: string, phone: strin
 };
 
 // 2. Экран, если запись уже есть
-export const AlreadyRegisteredScreen: React.FC<{ regTime: string; onOk: () => void; onCancel: () => void }> = ({
-  regTime,
-  onOk,
-  onCancel,
-}) => {
+export const AlreadyRegisteredScreen: React.FC<{
+  regTime: string;
+  address: string;
+  onOk: () => void;
+  onCancel: () => void;
+}> = ({ regTime, address, onOk, onCancel }) => {
   const datetime = dayjs(regTime);
 
   return (
@@ -60,6 +75,8 @@ export const AlreadyRegisteredScreen: React.FC<{ regTime: string; onOk: () => vo
 
       <p className={styles.time}>{datetime.format('DD MMMM')}</p>
       <p className={styles.time}>{datetime.format('HH:mm')}</p>
+
+      <p className={styles.time}>{address}</p>
 
       <div className={styles.actions}>
         <button className={styles.button} onClick={onOk}>
@@ -74,11 +91,12 @@ export const AlreadyRegisteredScreen: React.FC<{ regTime: string; onOk: () => vo
 };
 
 // 3. Экран выбора слота
-export const SlotSuggestionScreen: React.FC<{ nextTime: string; onConfirm: () => void; onReject: () => void }> = ({
-  nextTime,
-  onConfirm,
-  onReject,
-}) => {
+export const SlotSuggestionScreen: React.FC<{
+  nextTime: string;
+  address: string;
+  onConfirm: () => void;
+  onReject: () => void;
+}> = ({ nextTime, address, onConfirm, onReject }) => {
   const datetime = dayjs(nextTime);
 
   return (
@@ -87,6 +105,7 @@ export const SlotSuggestionScreen: React.FC<{ nextTime: string; onConfirm: () =>
       <p>Доступное время:</p>
       <p className={styles.time}>{datetime.format('DD MMMM')}</p>
       <p className={styles.time}>{datetime.format('HH:mm')}</p>
+      <p className={styles.time}>{address}</p>
       <div className={styles.actions}>
         <button className={styles.button} onClick={onConfirm}>
           Записаться
@@ -114,9 +133,10 @@ export const RegisteredInfoScreen: React.FC<{
   regTime: string;
   FIO: string;
   GosNomer: string;
+  address: string;
   onOk: VoidFunction;
   onCancel: VoidFunction;
-}> = ({ regTime, FIO, GosNomer, onCancel, onOk }) => {
+}> = ({ regTime, FIO, GosNomer, onCancel, onOk, address }) => {
   const datetime = dayjs(regTime);
 
   return (
@@ -127,6 +147,8 @@ export const RegisteredInfoScreen: React.FC<{
       <p className={styles.time}>Время: {datetime.format('HH:mm')}</p>
       <p className={styles.time}>ГосНомер: {GosNomer}</p>
       <p className={styles.time}>Водитель: {FIO}</p>
+
+      <p className={styles.time}>Адрес: {address}</p>
 
       <div className={styles.actions}>
         <button className={styles.button} onClick={onOk}>
@@ -141,7 +163,10 @@ export const RegisteredInfoScreen: React.FC<{
 };
 
 // 6. Экран успешной записи
-export const RegisteredSuccessScreen: React.FC<{ regTime: string }> = ({ regTime }) => {
+export const RegisteredSuccessScreen: React.FC<{
+  regTime: string;
+  address: string;
+}> = ({ regTime, address }) => {
   const datetime = dayjs(regTime);
 
   return (
@@ -149,7 +174,7 @@ export const RegisteredSuccessScreen: React.FC<{ regTime: string }> = ({ regTime
       <h1 className={styles.title}>
         Ждём вас {datetime.format('DD MMMM')} в {datetime.format('HH:mm')}
       </h1>
-      <p className={styles.subtitle}>Адрес: Иркутск, Покрышкина, 74</p>
+      <p className={styles.time}>Адрес: {address}</p>
     </div>
   );
 };

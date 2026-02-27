@@ -2,9 +2,13 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-import { QueryClient, QueryClientProvider, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  useMutation,
+  useQuery,
+} from '@tanstack/react-query';
 import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import {
   EntryFormScreen,
   AlreadyRegisteredScreen,
@@ -32,6 +36,7 @@ interface AuthResponse {
   RegTime: string;
   FIO: string;
   GosNomer: string;
+  Adress: string;
 }
 
 interface NextSlotResponse {
@@ -51,13 +56,18 @@ const MainComponent: React.FC = () => {
   const [FIO, setFIO] = useState<string>('');
   const [GosNomer, setGosNomer] = useState<string>('');
 
+  const [address, setAddress] = useState<string>('qwesasd');
+
   const nextSlotQuery = useQuery<NextSlotResponse>({
     queryKey: ['nextSlot'],
-    queryFn: () => axios.get<NextSlotResponse>('/api/next-slot').then((r) => r.data),
+    queryFn: () =>
+      axios.get<NextSlotResponse>('/api/next-slot').then((r) => r.data),
     enabled: false,
   });
 
-  const { set } = useLocalStorageValue<LocalGnPhStorage>(LOCAL_GN_PH_STORAGE, { initializeWithValue: true });
+  const { set } = useLocalStorageValue<LocalGnPhStorage>(LOCAL_GN_PH_STORAGE, {
+    initializeWithValue: true,
+  });
 
   const authMutation = useMutation({
     mutationFn: ({ gn, ph }: { gn: string; ph: string }) =>
@@ -68,7 +78,7 @@ const MainComponent: React.FC = () => {
 
       setFIO(data.FIO);
       setGosNomer(data.GosNomer);
-
+      setAddress(data.Adress);
       set({ gn, ph });
 
       if (data.isReg) {
@@ -90,7 +100,8 @@ const MainComponent: React.FC = () => {
   });
 
   const queueMutation = useMutation({
-    mutationFn: () => axios.post<QueueResponse>('/api/queue', { garNum, phone, regTime }),
+    mutationFn: () =>
+      axios.post<QueueResponse>('/api/queue', { garNum, phone, regTime }),
     onSuccess: ({ data }) => {
       if (data.RegTime) {
         setScreen(Screen.RegistryInfo);
@@ -127,10 +138,20 @@ const MainComponent: React.FC = () => {
     <>
       {screen === Screen.Entry && <EntryFormScreen onSubmit={handleSubmit} />}
       {screen === Screen.AlreadyRegistered && (
-        <AlreadyRegisteredScreen regTime={regTime} onOk={handleConfirmRegistry} onCancel={handleCancel} />
+        <AlreadyRegisteredScreen
+          regTime={regTime}
+          onOk={handleConfirmRegistry}
+          onCancel={handleCancel}
+          address={address}
+        />
       )}
       {screen === Screen.SuggestSlot && (
-        <SlotSuggestionScreen nextTime={regTime} onConfirm={handleConfirmSlot} onReject={handleRejectSlot} />
+        <SlotSuggestionScreen
+          nextTime={regTime}
+          onConfirm={handleConfirmSlot}
+          onReject={handleRejectSlot}
+          address={address}
+        />
       )}
       {screen === Screen.NoSlots && <NoSlotsScreen onBack={handleRejectSlot} />}
       {screen === Screen.RegistryInfo && (
@@ -140,9 +161,12 @@ const MainComponent: React.FC = () => {
           GosNomer={GosNomer}
           onOk={handleConfirmRegistry}
           onCancel={handleCancel}
+          address={address}
         />
       )}
-      {screen === Screen.Success && <RegisteredSuccessScreen regTime={regTime} />}
+      {screen === Screen.Success && (
+        <RegisteredSuccessScreen regTime={regTime} address={address} />
+      )}
       <ToastContainer position="bottom-center" />
     </>
   );
