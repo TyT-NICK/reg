@@ -119,17 +119,19 @@ const MainComponent: React.FC = () => {
       try {
         const slotResponse = await nextSlotQuery.mutateAsync({ gn, ph });
 
-        if (slotResponse.data?.RegTime) {
-          setRegTime(slotResponse.data.RegTime);
-          setScreen(Screen.SuggestSlot);
-        } else {
-          toast.error('Нет доступного времени для записи.');
+        if (!slotResponse.data?.RegTime) {
+          throw Error;
         }
+
+        setRegTime(slotResponse.data.RegTime);
+        setScreen(Screen.SuggestSlot);
       } catch {
-        toast.error('Нет доступного времени для записи.');
+        toast.error('Нет доступного времени для записи');
       }
     } catch {
-      toast.error('Неверный гаражный номер или телефон');
+      toast.error(
+        'Произошла ошибка. Проверьте введеные данные или повторите попытку записи позже',
+      );
     }
   };
 
